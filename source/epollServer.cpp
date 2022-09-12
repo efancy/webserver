@@ -1,8 +1,9 @@
 #include "epollServer.h"
 
+int epollServer::m_epollfd = 0; // 所有的socket上的事件都被注册到同一个epoll内核事件中，所有设置成静态
+
 epollServer::epollServer()
 {
-    this->m_epollfd = 0;
     this->m_epollfd = epoll_create(8);
 }
 
@@ -63,8 +64,8 @@ void epollServer::modfd(int fd, int ev)
     epoll_event event;
     event.data.fd = fd;
     event.events = ev | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
-    int ret = epoll_ctl(this->m_epollfd,EPOLL_CTL_MOD,fd,&event);
-    if(ret == -1)
+    int ret = epoll_ctl(this->m_epollfd, EPOLL_CTL_MOD, fd, &event);
+    if (ret == -1)
     {
         perror("epoll_ctl");
         exit(-1);
@@ -74,10 +75,17 @@ void epollServer::modfd(int fd, int ev)
 // 测试m_epollfd
 int epollServer::start()
 {
-    int number = epoll_wait(this->m_epollfd,this->events,MAX_EVENT_NUMBER,-1);
-    if(number == -1)
+    int number = epoll_wait(this->m_epollfd, this->events, MAX_EVENT_NUMBER, -1);
+    if (number == -1)
     {
         perror("epoll_wait");
         exit(-1);
     }
+    return number;
+}
+
+// 获取事件
+epoll_event *epollServer::getevents()
+{
+    return this->events;
 }

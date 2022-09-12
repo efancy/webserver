@@ -24,6 +24,8 @@ public:
     // 获取本地信息
     struct sockaddr_in getAddr_in();
 
+    struct sockaddr* getAddr();
+
 private:
     unsigned short m_port;
     socklen_t len;

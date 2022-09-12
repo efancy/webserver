@@ -3,6 +3,10 @@
 tcpServer::tcpServer(unsigned short port) // 调用本地地址信息类 传入端口初始化本地地址信息
 {
     this->m_address = new hostAddress(port);
+    if(!this->m_address)
+    {
+        throw std::exception();
+    }
 }
 
 tcpServer::~tcpServer()
@@ -38,7 +42,7 @@ void tcpServer::socketRun() // 完成socket绑定及监听
     this->reuseAddr(this->m_listen_fd);
 
     // 绑定
-    int ret = bind(this->m_listen_fd,(struct sockaddr*)&this->m_address->getAddr_in(),this->m_address->getLen());
+    int ret = bind(this->m_listen_fd,this->m_address->getAddr(),this->m_address->getLen());
     if(ret == -1)
     {
         perror("bind");

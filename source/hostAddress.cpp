@@ -31,6 +31,11 @@ struct sockaddr_in hostAddress::getAddr_in() // 获取本地地址信息
     return this->server_address;
 }
 
+struct sockaddr* hostAddress::getAddr()
+{
+    return (struct sockaddr*)&this->server_address;
+}
+
 socklen_t hostAddress::getLen() // 获取本地地址信息长度
 {
     return this->len;

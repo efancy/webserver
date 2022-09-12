@@ -26,14 +26,18 @@ public:
     int setnoblocking(int fd);
 
     // 修改文件描述符,重置socket上的EPOLLONESHOT事件，确保下一次数据可读时，EPOLLIN事件能被触发
-    void modfd(int fd,int ev);
+    void modfd(int fd, int ev);
 
     // 测试m_epollfd
     int start();
 
+    // 获取事件
+    epoll_event *getevents();
+
+    static int m_epollfd; // 所有的socket上的事件都被注册到同一个epoll内核事件中，所有设置成静态
+
 private:
     struct epoll_event events[MAX_EVENT_NUMBER];
-    int m_epollfd;
 };
 
 #endif

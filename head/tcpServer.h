@@ -3,6 +3,7 @@
 
 #include "baseSocket.h"
 #include "hostAddress.h"
+#include <exception>
 
 class tcpServer : public baseSocket
 {
