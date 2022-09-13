@@ -16,8 +16,14 @@ void epollServer::addfd(int fd, bool one_shot)
 {
     epoll_event event;
     event.data.fd = fd;
-    event.events = EPOLLIN | EPOLLRDHUP;
-
+    if(fd == this->m_tcp->getListenfd())
+    {
+        event.events = EPOLLIN | EPOLLRDHUP;
+    }
+    else
+    {
+        event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+    }
     // 将事件设置为oneshot 防止同一个通信被不同的线程处理
     if (one_shot)
     {

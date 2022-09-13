@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include "tcpServer.h"
 
 #define MAX_EVENT_NUMBER 10000
 
@@ -38,6 +39,7 @@ public:
 
 private:
     struct epoll_event events[MAX_EVENT_NUMBER];
+    tcpServer* m_tcp;
 };
 
 #endif
