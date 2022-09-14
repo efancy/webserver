@@ -27,6 +27,7 @@ void addSig(int sig, void(handler)(int))
 
 int main(int argc, char *argv[])
 {
+    // 检查输入格式并提示
     if (argc <= 1)
     {
         printf("usage: %s port_number\n", basename(argv[0]));
@@ -36,7 +37,7 @@ int main(int argc, char *argv[])
     int port = atoi(argv[1]);
     addSig(SIGPIPE, SIG_IGN);
 
-    threadpool<conn_http>* pool = NULL;
+    threadpool<conn_http> *pool = NULL;
     try
     {
         pool = new threadpool<conn_http>;
@@ -59,8 +60,6 @@ int main(int argc, char *argv[])
 
     listenfd->start(); // 创建完成
 
-    // 客户端个数
-    conn_http *users = new conn_http[MAX_FD];
 
     // 将监听socket添加到epoll对象中
     epollServer *epoll = NULL;
@@ -73,12 +72,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    epoll->addfd(listenfd->getListenfd(), false); // 添加
+    addfd(listenfd->getListenfd(), false); // 添加
+
+    // 客户端个数
+    conn_http *users = new conn_http[MAX_FD];
 
     while (true)
     {
-        // 检测 判断
-        int number = epoll->start();
+        // 检测事件 判断 
+        int number = epoll->start(); 
         if ((number < 0) && (errno != EINTR))
         {
             printf("epoll failure\n");
@@ -107,17 +109,11 @@ int main(int argc, char *argv[])
                 }
                 listenfd->reuseAddr(connfd);             // 端口复用
                 users[connfd].init(connfd, client_addr); // 初始化连接
-                epoll->addfd(connfd, true);              // 添加进epoll
             }
             else if (epoll->getevents()[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
             {
                 // 关闭连接
-                if (users[sockfd].getSocket() == -1)
-                {
-                    epoll->removefd(sockfd);
-                    users[sockfd].setSocket(-1);
-                    conn_http::m_user_count--;
-                }
+                users[sockfd].close_conn();
             }
             else if (epoll->getevents()[i].events & EPOLLIN)
             {
@@ -128,12 +124,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     // 关闭连接
-                    if (users[sockfd].getSocket() == -1)
-                    {
-                        epoll->removefd(sockfd);
-                        users[sockfd].setSocket(-1);
-                        conn_http::m_user_count--;
-                    }
+                    users[sockfd].close_conn();
                 }
             }
             else if (epoll->getevents()[i].events & EPOLLOUT)
@@ -141,12 +132,7 @@ int main(int argc, char *argv[])
                 if (!users[sockfd].write()) // 一次读完数据
                 {
                     // 关闭连接
-                    if (users[sockfd].getSocket() == -1)
-                    {
-                        epoll->removefd(sockfd);
-                        users[sockfd].setSocket(-1);
-                        conn_http::m_user_count--;
-                    }
+                    users[sockfd].close_conn();
                 }
             }
         }
@@ -154,7 +140,9 @@ int main(int argc, char *argv[])
 
     close(epoll->m_epollfd);
     close(listenfd->getListenfd());
-    delete [] users;
+    delete listenfd;
+    delete epoll;
+    delete[] users;
     delete pool;
     return 0;
 }

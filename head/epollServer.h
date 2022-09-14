@@ -10,24 +10,27 @@
 
 #define MAX_EVENT_NUMBER 10000
 
+// 添加fd到m_epollfd
+extern void addfd(int fd, bool one_shot);
+
+// 从m_epollfd中移除fd
+extern void removefd(int fd);
+
+// 修改文件描述符,重置socket上的EPOLLONESHOT事件，确保下一次数据可读时，EPOLLIN事件能被触发
+extern void modfd(int fd, int ev);
+
+// 设置fd非阻塞
+extern int setnoblocking(int fd);
+
 class epollServer
 {
 public:
     epollServer();
 
+
     ~epollServer();
 
-    // 添加fd到m_epollfd
-    void addfd(int fd, bool one_shot);
-
-    // 从m_epollfd中移除fd
-    void removefd(int fd);
-
-    // 设置fd非阻塞
-    int setnoblocking(int fd);
-
-    // 修改文件描述符,重置socket上的EPOLLONESHOT事件，确保下一次数据可读时，EPOLLIN事件能被触发
-    void modfd(int fd, int ev);
+   
 
     // 测试m_epollfd
     int start();
@@ -39,7 +42,6 @@ public:
 
 private:
     struct epoll_event events[MAX_EVENT_NUMBER];
-    tcpServer* m_tcp;
 };
 
 #endif
